@@ -1,0 +1,69 @@
+// Course: CS6381 Distributed Systems Principles
+// Instructor: Aniruddha Gokhale
+// Created: Spring 2023
+//
+// Purpose:
+// Describe an initial schema for message exchange with the Discovery service.
+
+
+// Let us use the Version 3 syntax
+syntax = "proto3";
+
+// We will define all the enumeration types we need at the start
+
+// An enumeration for the role we are playing
+enum Role {
+    ROLE_UNKNOWN = 0;
+    ROLE_VOLUNTEER = 1;
+}
+
+// an enumeration for the status of the message request
+enum Status {
+    STATUS_UNKNOWN = 0;
+    STATUS_SUCCESS = 1;
+    STATUS_FAILURE = 2;
+    STATUS_CHECK_AGAIN = 3;   // when the server is not ready to provide info as yet
+}
+
+enum MsgTypes {
+     TYPE_UNKNOWN = 0;
+     TYPE_REGISTER = 1;  // used by pub, sub and broker.
+     TYPE_JOB = 2;
+}
+
+message RegistrantInfo {
+    string id = 1;  // name of the entity
+    optional string addr = 2; // IP address (only for publisher)
+    optional uint32 port = 3; // port number (only for publisher)
+}
+
+message RegisterReq
+{
+    Role role = 1;   // enum indicating what role we are playing
+    RegistrantInfo info = 2; // info about the registrant
+}
+
+// Response to registration can be a success or a failure accompanied by a reason.
+message RegisterResp
+{
+    Status status = 1;   // success or failure
+    optional string reason = 2; // reason for failure
+}
+
+
+message MainReq
+{
+        MsgTypes msg_type = 1;
+        oneof Content {
+              RegisterReq register_req = 2;
+        }
+}
+
+// Response to discovery req will be similar oneof of the responses.
+message MainResp
+{
+        MsgTypes msg_type = 1;
+        oneof Content {
+              RegisterResp register_resp = 2;
+        }
+}
