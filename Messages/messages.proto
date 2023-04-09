@@ -35,6 +35,7 @@ message RegistrantInfo {
     string id = 1;  // name of the entity
     optional string addr = 2; // IP address (only for publisher)
     optional uint32 port = 3; // port number (only for publisher)
+    optional uint32 capacity = 4;
 }
 
 message RegisterReq

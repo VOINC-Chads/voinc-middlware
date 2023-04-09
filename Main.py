@@ -24,6 +24,8 @@ class Main():
         self.numVolunteers = None
         self.numOccupied = None
 
+
+
     def configure(self, args):
 
         try:
@@ -34,6 +36,7 @@ class Main():
 
             self.mw_obj = MainMW(self.logger)
             self.mw_obj.configure(args)
+
 
 
         except Exception as e:
@@ -47,10 +50,13 @@ class Main():
             name = information.info.id
             port = information.info.port
             addr = information.info.addr
+            capacity = information.info.capacity
 
             if name in self.volunteers:
                 print("Already registered worker")
             else:
+                information = [name, port, addr, capacity]
+                self.volunteers[name] = information
                 print("Looking at new worker")
 
         except Exception as e:
