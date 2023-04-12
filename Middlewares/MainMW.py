@@ -5,6 +5,8 @@
 import zmq
 from Messages import messages_pb2
 from Middlewares.zookeeper import ZK
+import requests
+import time
 
 class MainMW():
 
@@ -23,7 +25,33 @@ class MainMW():
         self.leader = False
         self.zk = None
 
+        self.codeReceived = True
 
+    def create_endpoint(self):
+
+        try:
+
+
+            self.logger.info("Waiting for code to exist at this endpoint")
+
+
+            while not self.codeReceived:
+                self.logger.info("Waiting on code")
+
+                response = requests.get("http://localhost:3000/getCode")
+                self.logger.info(response.json())
+                time.sleep(2)
+
+
+
+        except Exception as e:
+            raise e
+    def set_upccall_handle(self, obj):
+
+        try:
+            self.upcall_obj = obj
+        except Exception as e:
+            raise e
     def configure(self, args):
 
         try:
@@ -52,6 +80,7 @@ class MainMW():
             if not self.leader:
                 print("Setting subscription sockets to changes")
             else:
+                self.create_endpoint()
                 print("Setting publisher sockets to report updates")
 
 

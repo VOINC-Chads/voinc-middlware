@@ -18,6 +18,14 @@ class ZK():
 
         self.zk.start()
 
+    def replica_watching_main(self, obj):
+
+        try:
+
+            print("Need to handle replica watches")
+
+        except Exception as e:
+            raise e
     def watch_main_change(self, obj):
 
         try:

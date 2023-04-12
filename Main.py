@@ -9,6 +9,9 @@ import zmq
 from kazoo.client import KazooClient
 from Middlewares.MainMW import MainMW
 import logging
+from flask import Flask, request
+import time
+import requests
 
 class Main():
 
@@ -24,8 +27,17 @@ class Main():
         self.numVolunteers = None
         self.numOccupied = None
 
+        self.code = None
 
 
+    def update_code(self, code):
+
+        try:
+
+            self.code = code
+
+        except Exception as e:
+            raise e
     def configure(self, args):
 
         try:
@@ -43,7 +55,7 @@ class Main():
             raise e
 
 
-    def register_volunteer(self, information):
+    def register_volunteer(self, information, id):
 
         try:
 
@@ -52,16 +64,35 @@ class Main():
             addr = information.info.addr
             capacity = information.info.capacity
 
-            if name in self.volunteers:
-                print("Already registered worker")
+            if str(addr) + ":" + str(port) in self.volunteers:
+                self.logger.info("Already registered worker")
+
             else:
                 information = [name, port, addr, capacity]
-                self.volunteers[name] = information
+                self.volunteers[str(addr) + ":" + str(port)] = information
+                self.logger.info()
                 print("Looking at new worker")
 
         except Exception as e:
             raise e
 
+
+    def driver(self):
+
+        try:
+
+
+            # Set the upcall handler from the middleware
+            self.mw_obj.set_upcall_handle(self)
+
+            # start the event loop that just continuously runs and checks for requests
+
+            self.mw_obj.event_loop(timeout=None)
+
+
+
+        except Exception as e:
+            raise e
 
 def parseCmdLineArgs():
 
@@ -73,5 +104,47 @@ def parseCmdLineArgs():
     parser.add_argument("-p", "--port", default="5000", help="Port process is running on")
     parser.add_argument("-z", "--zkaddr", default="localhost", help="Address zookeeper is running on")
     parser.add_argument("-o", "--zkport", default="2181", help="Port zookeeper is running on")
+    parser.add_argument("-l", "--loglevel", type=int, default=logging.INFO,
+                        choices=[logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL],
+                        help="logging level, choices 10,20,30,40,50: default 20=logging.INFO")
 
-    parser.add_argument()
+    return parser.parse_args()
+
+
+def main():
+    try:
+        # obtain a system wide logger and initialize it to debug level to begin with
+        logging.debug("Main - acquire a child logger and then log messages in the child")
+        logger = logging.getLogger("Main")
+
+        # first parse the arguments
+        logger.debug("Main: parse command line arguments")
+        args = parseCmdLineArgs()
+
+        # reset the log level to as specified
+        logger.debug("Main: resetting log level to {}".format(args.loglevel))
+        logger.setLevel(args.loglevel)
+        logger.debug("Main: effective log level is {}".format(logger.getEffectiveLevel()))
+
+        # Obtain a publisher application
+        logger.debug("Main: obtain the object")
+        disc_app = Main(logger)
+
+        # configure the object
+        disc_app.configure(args)
+
+        # now invoke the driver program
+        disc_app.driver()
+
+    except Exception as e:
+        logger.error("Exception caught in main - {}".format(e))
+        return
+
+if __name__ == "__main__":
+
+  # set underlying default logging capabilities
+  logging.basicConfig (level=logging.DEBUG,
+                       format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+
+  main()
