@@ -5,14 +5,29 @@ import zmq
 import argparse
 import logging
 from Middlewares.WorkerMW import WorkerMW
+from enum import Enum
 
 class Worker():
+
+    class State(Enum):
+        INITIALIZE = 0,
+        CONFIGURE = 1,
+        REGISTER = 2,
+        PERFORM_JOBS = 3
+
 
     def __init__(self, logger):
 
         self.logger = logger
         self.mw_obj = None
         self.name = None
+        self.capacity = None
+        self.IP = None
+        self.port = None
+
+
+        self.state = self.State.INITIALIZE
+
 
 
 
@@ -20,20 +35,36 @@ class Worker():
 
         try:
 
+            self.logger.info("Worker::configure - configuring worker")
+
             self.name = args.name
+            self.capacity = args.capacity
 
             self.mw_obj = WorkerMW(self.logger)
+
+
+
             self.mw_obj.configure(args)
 
         except Exception as e:
             raise e
 
-    def register(self):
+    def register_response(self, resp):
 
         try:
 
-            self.mw_obj.register(self.name)
-            print("Registering")
+            self.logger.info("Worker::register_response - got a registration response")
+            self.logger.info(resp)
+
+            if resp.status:
+                self.logger.info("Worker::register_response - successful registration")
+                self.state = self.State.PERFORM_JOBS
+
+                return None
+
+            else:
+                raise("Worker with same credentials already exists.")
+
 
         except Exception as e:
             raise e
@@ -57,14 +88,93 @@ class Worker():
 
 
 
-def parseCmdLineArgs():
-    parser = argparse.ArgumentParser(description="Main/Master Application")
+    def invoke_operation(self):
 
-    parser.add_argument("-n", "--name", default="main", help="Name assigned to master")
+
+        try:
+
+            self.logger.info("Worker::invoke_operation")
+
+            if (self.state == self.State.REGISTER):
+                # send a register msg to discovery service
+                self.logger.debug("Worker::invoke_operation - register with the discovery service")
+                self.mw_obj.register(self.name)
+
+                return None
+
+        except Exception as e:
+            raise e
+
+
+    def driver(self):
+
+        try:
+
+
+            # Set the upcall handler from the middleware
+            self.mw_obj.set_upcall_handle(self)
+
+
+            self.state = self.State.REGISTER
+            # start the event loop that just continuously runs and checks for requests
+
+            self.mw_obj.event_loop(timeout=0)
+
+
+        except Exception as e:
+            raise e
+
+
+def parseCmdLineArgs():
+    parser = argparse.ArgumentParser(description="Worker Application")
+
+    parser.add_argument("-n", "--name", default="worker", help="Name assigned to master")
     parser.add_argument("-a", "--addr", default="localhost", help="Address process is running on")
-    parser.add_argument("-p", "--port", default="5000", help="Port process is running on")
+    parser.add_argument("-p", "--port", default="7000", help="Port process is running on")
     parser.add_argument("-c", "--capacity", default=2048, help="Storage capacity for job to take place")
     parser.add_argument("-z", "--zkaddr", default="localhost", help="Address zookeeper is running on")
     parser.add_argument("-o", "--zkport", default="2181", help="Port zookeeper is running on")
+    parser.add_argument("-l", "--loglevel", type=int, default=logging.INFO,
+                        choices=[logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL],
+                        help="logging level, choices 10,20,30,40,50: default 20=logging.INFO")
 
-    parser.add_argument()
+    return parser.parse_args()
+
+
+def main():
+    try:
+        # obtain a system wide logger and initialize it to debug level to begin with
+        logging.debug("Worker - acquire a child logger and then log messages in the child")
+        logger = logging.getLogger("Worker")
+
+        # first parse the arguments
+        logger.debug("Worker: parse command line arguments")
+        args = parseCmdLineArgs()
+
+        # reset the log level to as specified
+        logger.debug("Worker: resetting log level to {}".format(args.loglevel))
+        logger.setLevel(args.loglevel)
+        logger.debug("Worker: effective log level is {}".format(logger.getEffectiveLevel()))
+
+        # Obtain a publisher application
+        logger.debug("Worker: obtain the object")
+        disc_app = Worker(logger)
+
+        # configure the object
+        disc_app.configure(args)
+
+        # now invoke the driver program
+        disc_app.driver()
+
+    except Exception as e:
+        logger.error("Exception caught in main - {}".format(e))
+        return
+
+if __name__ == "__main__":
+
+  # set underlying default logging capabilities
+  logging.basicConfig (level=logging.DEBUG,
+                       format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+
+  main()

@@ -14,7 +14,7 @@ class MainMW():
     def __init__(self, logger):
 
         self.router = None
-        self.logger = None
+        self.logger = logger
         self.port = None
         self.addr = None
         self.poller = None
@@ -46,7 +46,7 @@ class MainMW():
 
         except Exception as e:
             raise e
-    def set_upccall_handle(self, obj):
+    def set_upcall_handle(self, obj):
 
         try:
             self.upcall_obj = obj
@@ -92,6 +92,8 @@ class MainMW():
 
         try:
 
+            self.logger.info("Main::event_loop")
+
             while True:
 
                 events = dict(self.poller.poll(timeout=timeout))
@@ -104,9 +106,30 @@ class MainMW():
             raise e
 
 
+    def send_register_response(self, status, id):
+
+        try:
+
+            resp = messages_pb2.MainResp()
+            resp.msg_type = messages_pb2.TYPE_REGISTER
+
+            reg_resp = messages_pb2.RegisterResp()
+            reg_resp.status = 1 if status else 0
+
+            resp.register_resp.CopyFrom(reg_resp)
+
+            buf2send = resp.SerializeToString()
+
+            self.router.send_multipart([id, buf2send])
+
+        except Exception as e:
+            raise e
+
     def handle_message(self):
 
         try:
+
+            self.logger.info("MainMW::handle_message")
 
             recvd = self.router.recv_multipart()
             id = recvd[0]
@@ -115,7 +138,9 @@ class MainMW():
             main_msg = messages_pb2.MainReq()
             main_msg.ParseFromString(message)
 
-            if main_msg.type == messages_pb2.TYPE_REGISTER:
+            if main_msg.msg_type == messages_pb2.TYPE_REGISTER:
+                self.logger.info("Register received")
+                self.logger.info(main_msg)
                 self.upcall_obj.register_volunteer(main_msg.register_req, id)
 
 

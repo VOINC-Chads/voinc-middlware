@@ -36,7 +36,7 @@ class ZK():
                 if data is None:
                     while not self.exists("/main"):
                         self.logger.info("Waiting for main")
-                obj.connect_main(data)
+                obj.connect_main(data.decode('utf-8'))
 
 
 

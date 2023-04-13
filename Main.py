@@ -6,12 +6,9 @@
 
 import argparse
 import zmq
-from kazoo.client import KazooClient
 from Middlewares.MainMW import MainMW
+from Middlewares.zookeeper import ZK
 import logging
-from flask import Flask, request
-import time
-import requests
 
 class Main():
 
@@ -20,7 +17,7 @@ class Main():
 
         self.logger = logger
         self.volunteers = {}
-        self.pending = {}
+        self.pending = set()
         self.mw_obj = None
         self.name = None
 
@@ -28,6 +25,10 @@ class Main():
         self.numOccupied = None
 
         self.code = None
+
+        self.zkAddr = None
+        self.zkPort = None
+        self.zk = None
 
 
     def update_code(self, code):
@@ -42,9 +43,16 @@ class Main():
 
         try:
 
+            self.logger.info("Main::configure - configuring main")
+
             self.numOccupied = 0
             self.numVolunteers = 0
             self.name = args.name
+
+            self.zkAddr = args.zkaddr
+            self.zkPort = args.zkport
+
+            self.zk = ZK(self.zkPort, self.zkAddr, self.logger)
 
             self.mw_obj = MainMW(self.logger)
             self.mw_obj.configure(args)
@@ -59,27 +67,38 @@ class Main():
 
         try:
 
+            self.logger.info("Main::register_volunteer - registering a volunteer below")
+            self.logger.info(information)
+
             name = information.info.id
             port = information.info.port
             addr = information.info.addr
             capacity = information.info.capacity
 
+            successful = True
+
             if str(addr) + ":" + str(port) in self.volunteers:
                 self.logger.info("Already registered worker")
-
+                successful = False
             else:
                 information = [name, port, addr, capacity]
                 self.volunteers[str(addr) + ":" + str(port)] = information
-                self.logger.info()
-                print("Looking at new worker")
+
+            self.logger.info(self.volunteers)
+
+            self.mw_obj.send_register_response(successful, id)
+
 
         except Exception as e:
             raise e
 
 
+
     def driver(self):
 
         try:
+
+            self.logger.info("Main::driver - entered driver")
 
 
             # Set the upcall handler from the middleware
