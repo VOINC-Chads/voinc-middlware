@@ -5,19 +5,24 @@ import (
 	"log"
 	"strconv"
 
+	"voinc/messages"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/zeromq/goczmq"
 )
 
 func main() {
 	var port int
 	var addr string
+	var requirements string
 	var processCode string
 	var executeCode string
 
 	flag.IntVar(&port, "p", 8000, "Provide a port number")
 	flag.StringVar(&addr, "a", "localhost", "Provide an address for VOINC master")
-	flag.StringVar(&processCode, "c", "", "Provide a process code")
-	flag.StringVar(&executeCode, "e", "", "Provide an execute code")
+	flag.StringVar(&requirements, "r", "req", "Provide a requirements.txt file")
+	flag.StringVar(&processCode, "c", "process", "Provide a process code")
+	flag.StringVar(&executeCode, "e", "execute", "Provide an execute code")
 
 	flag.Parse()
 
@@ -30,15 +35,31 @@ func main() {
 
 	log.Println("dealer created and connected")
 
+	mainMsg := &messages.MainReq{
+		MsgType: messages.MsgTypes_TYPE_CODE,
+		Content: &messages.MainReq_CodeMsg{
+			CodeMsg: &messages.CodeMsg{
+				Requirements: requirements,
+				ProcessCode:  processCode,
+				ExecuteCode:  executeCode,
+			},
+		},
+	}
+
+	protoMsg, err := proto.Marshal(mainMsg)
+	if err != nil {
+		log.Fatal("marshaling error: ", err)
+	}
+
 	// Send a 'Hello' message from the dealer to the router.
 	// Here we send it as a frame ([]byte), with a FlagNone
 	// flag to indicate there are no more frames following.
-	err = dealer.SendFrame([]byte("Hello"), goczmq.FlagNone)
+	err = dealer.SendFrame([]byte(protoMsg), goczmq.FlagNone)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println("dealer sent 'Hello'")
+	log.Println("dealer sent '" + string(protoMsg) + "'")
 
 	// Register a poller
 	poller, err := goczmq.NewPoller()
