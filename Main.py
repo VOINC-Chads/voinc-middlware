@@ -30,6 +30,8 @@ class Main():
         self.zkPort = None
         self.zk = None
 
+        self.quorum = None
+
 
     def update_code(self, code):
 
@@ -126,6 +128,8 @@ def parseCmdLineArgs():
     parser.add_argument("-l", "--loglevel", type=int, default=logging.INFO,
                         choices=[logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL],
                         help="logging level, choices 10,20,30,40,50: default 20=logging.INFO")
+    parser.add_argument("-q", "--quorum", type=int, default=3, help="quorum size")
+    parser.add_argument("-l", "--leadersize", type=int, default=1, help="Number of replicas needed to begin")
 
     return parser.parse_args()
 
