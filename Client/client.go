@@ -51,6 +51,27 @@ func main() {
 		log.Fatal("marshaling error: ", err)
 	}
 
+	err = dealer.SendFrame([]byte(protoMsg), goczmq.FlagNone)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("dealer sent '" + string(protoMsg) + "'")
+
+	mainMsg = &messages.MainReq{
+		MsgType: messages.MsgTypes_TYPE_JOB,
+		Content: &messages.MainReq_JobMsg{
+			JobMsg: &messages.JobMsg{
+				Jobs: []string{"1"},
+			},
+		},
+	}
+
+	protoMsg, err = proto.Marshal(mainMsg)
+	if err != nil {
+		log.Fatal("marshaling error: ", err)
+	}
+
 	// Send a 'Hello' message from the dealer to the router.
 	// Here we send it as a frame ([]byte), with a FlagNone
 	// flag to indicate there are no more frames following.
