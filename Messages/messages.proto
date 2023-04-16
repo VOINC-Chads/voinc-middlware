@@ -72,7 +72,9 @@ message MainReq
 {
         MsgTypes msg_type = 1;
         oneof Content {
-              RegisterReq register_req = 2;
+                RegisterReq register_req = 2;
+                Heartbeat heartbeat = 3;
+                CodeMsg code_msg = 4;
 
         }
 }
@@ -82,6 +84,8 @@ message MainResp
 {
         MsgTypes msg_type = 1;
         oneof Content {
-              RegisterResp register_resp = 2;
+                RegisterResp register_resp = 2;
+                JobMsg job_msg = 3;
+                Heartbeat heartbeat = 4;
         }
 }
