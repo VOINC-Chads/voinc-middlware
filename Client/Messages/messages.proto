@@ -31,25 +31,6 @@ enum MsgTypes {
      TYPE_JOB = 2;
 }
 
-message RegistrantInfo {
-    string id = 1;  // name of the entity
-    optional string addr = 2; // IP address (only for publisher)
-    optional uint32 port = 3; // port number (only for publisher)
-    optional uint32 capacity = 4;
-}
-
-message RegisterReq
-{
-    Role role = 1;   // enum indicating what role we are playing
-    RegistrantInfo info = 2; // info about the registrant
-}
-
-// Response to registration can be a success or a failure accompanied by a reason.
-message RegisterResp
-{
-    Status status = 1;   // success or failure
-    optional string reason = 2; // reason for failure
-}
 
 message Heartbeat
 {
@@ -68,12 +49,18 @@ message JobMsg
     repeated string jobs = 1;
 }
 
+message JobResp
+{
+    repeated string jobs = 1;
+}
+
 message MainReq
 {
         MsgTypes msg_type = 1;
         oneof Content {
-              RegisterReq register_req = 2;
-
+                JobMsg job_msg = 2;
+                CodeMsg code_msg = 3;
+                Heartbeat heartbeat = 4;
         }
 }
 
@@ -82,6 +69,7 @@ message MainResp
 {
         MsgTypes msg_type = 1;
         oneof Content {
-              RegisterResp register_resp = 2;
+              JobResp job_resp = 2;
+              Heartbeat heartbeat = 3;
         }
 }
