@@ -25,27 +25,14 @@ class MainMW():
         self.leader = False
         self.zk = None
 
-        self.codeReceived = True
+        self.leaderQuorum = None
 
-    def create_endpoint(self):
+        self.leaderPort = 7001
 
-        try:
-
-
-            self.logger.info("Waiting for code to exist at this endpoint")
+        self.replicaSub = None
+        self.leaderPub = None
 
 
-            while not self.codeReceived:
-                self.logger.info("Waiting on code")
-
-                response = requests.get("http://localhost:3000/getCode")
-                self.logger.info(response.json())
-                time.sleep(2)
-
-
-
-        except Exception as e:
-            raise e
     def set_upcall_handle(self, obj):
 
         try:
@@ -60,6 +47,7 @@ class MainMW():
             self.addr = args.addr
             self.zkPort = args.zkport
             self.zkAddr = args.zkaddr
+            self.leaderQuorum = args.leadersize
 
             self.zk = ZK(self.zkPort, self.zkAddr, self.logger)
 
@@ -70,24 +58,62 @@ class MainMW():
 
             self.poller.register(self.router, zmq.POLLIN)
 
+            self.replicaSub = context.socket(zmq.SUB)
+            self.leaderPub = context.socket(zmq.PUB)
+
+            self.poller.register(self.replicaSub, zmq.POLLIN)
+
             bind_string = "tcp://*:" + str(self.port)
 
             self.router.bind(bind_string)
+
+            self.zk.create("/replicas/{}".format(args.name), eph=True, value=(self.addr + ":" + str(self.port)))
+            while self.zk.get_num_children("/replicas/") < self.leaderQuorum:
+                self.logger.info("MainMW::configure - waiting for leader election.")
+                time.sleep(0.3)
+
 
             # Do leader election
             self.leader = self.zk.create(name="/main", eph=True, value=self.addr + ":" + self.port)
 
             if not self.leader:
-                print("Setting subscription sockets to changes")
+                self.logger.info("MainMW::configure - this replica not a leader")
+                self.zk.watch_main_change("/main", self)
+                value = self.zk.get_node_data("/main")
+                if value is not None:
+                    decoded = value.decode('utf-8')
+                    self.logger.info("MainMW::configure - connecting sub socket {}".format(decoded))
+                    self.replicaSub.connect("tcp://" + decoded)
             else:
-                self.create_endpoint()
-                print("Setting publisher sockets to report updates")
+                self.leaderPub.bind("tcp://*:" + str(self.leaderPort))
 
 
 
         except Exception as e:
             raise e
 
+
+    def handle_fault(self, leader):
+
+        try:
+
+            self.logger.info("MainMW::handle_fault - fault occurred, so handling now")
+
+            if not leader:
+                self.logger.info("MainMW::handle_fault - this is not leader")
+                value = self.zk.get_node_data("/main")
+                if value is not None:
+                    decoded = value.decode
+                    self.logger.info("Connecting sub {}".format(decoded))
+                    self.replicaSub.connect("tcp://" + decoded)
+
+            else:
+                self.logger.info("MainMW::handle_fault - this is leader")
+                self.leaderPub.bind("tcp://*:" + str(self.leaderPort))
+
+
+        except Exception as e:
+            raise e
     def event_loop(self, timeout=None):
 
         try:

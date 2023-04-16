@@ -26,15 +26,15 @@ class ZK():
 
         except Exception as e:
             raise e
-    def watch_main_change(self, obj):
+    def watch_main_change(self, name, obj):
 
         try:
 
-            @self.zk.DataWatch("/main")
+            @self.zk.DataWatch(name)
             def data_change(data, stat):
 
                 if data is None:
-                    while not self.exists("/main"):
+                    while not self.exists(name):
                         self.logger.info("Waiting for main")
                 obj.connect_main(data.decode('utf-8'))
 
@@ -44,6 +44,20 @@ class ZK():
             raise e
 
 
+    def replica_watch_main(self, name, value, obj):
+
+        try:
+
+            @self.zk.DataWatch(name)
+            def main_change(data, stat):
+
+                if data is None:
+                    leader = self.create(name, eph=True, value=value)
+                    obj.handle_fault(leader)
+
+
+        except Exception as e:
+            raise e
     def create(self, name, eph, value):
 
         try:
@@ -64,6 +78,31 @@ class ZK():
             if (self.zk.exists(name)):
                 return True
             return False
+
+        except Exception as e:
+            raise e
+
+
+    def get_num_children(self, name):
+
+        try:
+
+            if not self.zk.exists(name):
+                return 0
+            return len(self.zk.get_children(name))
+
+        except Exception as e:
+            raise e
+
+
+    def get_node_data(self, name):
+
+        try:
+
+            if self.zk.exists(name):
+                return self.zk.get(name)
+            return None
+
 
         except Exception as e:
             raise e
