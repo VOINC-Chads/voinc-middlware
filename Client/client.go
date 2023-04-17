@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"log"
 	"strconv"
 
@@ -18,11 +19,32 @@ func main() {
 	var processCode string
 	var executeCode string
 
+	// Read from executeCode.py into executeCode variable
+	fileContent, err := ioutil.ReadFile("./themscripts/executeCode.py")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	executeCode = string(fileContent)
+
+	// Read from processCode.py into processCode variable
+	fileContent, err = ioutil.ReadFile("./themscripts/processCode.py")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	processCode = string(fileContent)
+
+	// Read from requirements.txt into requirements variable
+	fileContent, err = ioutil.ReadFile("./themscripts/requirements.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	requirements = string(fileContent)
+
 	flag.IntVar(&port, "p", 8000, "Provide a port number")
 	flag.StringVar(&addr, "a", "localhost", "Provide an address for VOINC master")
-	flag.StringVar(&requirements, "r", "req", "Provide a requirements.txt file")
-	flag.StringVar(&processCode, "c", "process", "Provide a process code")
-	flag.StringVar(&executeCode, "e", "execute", "Provide an execute code")
 
 	flag.Parse()
 
