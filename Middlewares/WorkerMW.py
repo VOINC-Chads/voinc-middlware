@@ -21,6 +21,9 @@ class WorkerMW():
         self.zkPort = None
         self.zk = None
 
+        self.router = None
+
+
 
     def configure(self, args):
 
@@ -37,17 +40,22 @@ class WorkerMW():
             context = zmq.Context()
             self.poller = zmq.Poller()
             self.dealer = context.socket(zmq.DEALER)
+            self.router = context.socket(zmq.ROUTER)
 
             self.poller.register(self.dealer, zmq.POLLIN)
+            self.poller.register(self.router, zmq.POLLIN)
+
+            self.router.bind("tcp://*:" + str(self.port))
 
             self.zk = ZK(self.zkPort, self.zkAddr, self.logger)
 
             self.logger.info("Worker waiting for main to exist")
 
+
             while not self.zk.exists("/main"):
                 self.logger.info("Waiting for main to start")
 
-            self.zk.watch_main_change(self)
+            self.zk.watch_main_change("/main", self)
 
 
         except Exception as e:
@@ -117,10 +125,68 @@ class WorkerMW():
 
                     timeout = self.handle_response()
 
+                elif self.router in events:
+
+                    timeout = self.handle_code_or_job()
+
         except Exception as e:
             raise e
 
 
+    def send_job_response(self, results, ids):
+
+        try:
+
+            self.logger.info("WorkerMW::send_job_response - sending back response with results below")
+            self.logger.info(results)
+
+            job_resp = messages_pb2.JobResp()
+
+            job_resp.status = 1
+
+            for result in results:
+
+                job_res = messages_pb2.JobResult()
+                job_res.value = str(result)
+                job_res.result = str(results[result])
+
+                job_resp.results.append(job_res)
+
+            main_resp = messages_pb2.MainResp()
+            main_resp.job_resp.CopyFrom(job_resp)
+
+            self.logger.info("Sending back")
+            self.logger.info(main_resp)
+
+            buf2send = main_resp.SerializeToString()
+
+            self.router.send_multipart(ids + [buf2send])
+
+            self.logger.info("Sent")
+
+        except Exception as e:
+            raise e
+
+    def handle_code_or_job(self):
+
+        try:
+            self.logger.info("WorkerMW::handle_code_or_job - main sent a job or code to handle")
+
+            recvd = self.router.recv_multipart()
+            ids = recvd[:2]
+            message = recvd[2]
+
+            main_msg = messages_pb2.MainReq()
+            main_msg.ParseFromString(message)
+
+            if main_msg.msg_type == messages_pb2.TYPE_CODE:
+                self.upcall_obj.handle_code(main_msg.code_msg)
+            elif main_msg.msg_type == messages_pb2.TYPE_JOB:
+                self.upcall_obj.handle_job(main_msg.job_msg, ids)
+
+
+        except Exception as e:
+            raise e
     def set_upcall_handle(self, obj):
 
         try:

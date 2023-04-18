@@ -43,7 +43,7 @@ func main() {
 
 	requirements = string(fileContent)
 
-	flag.IntVar(&port, "p", 8000, "Provide a port number")
+	flag.IntVar(&port, "p", 5000, "Provide a port number")
 	flag.StringVar(&addr, "a", "localhost", "Provide an address for VOINC master")
 
 	flag.Parse()
@@ -126,7 +126,8 @@ func main() {
 				log.Fatal(err)
 			}
 
-			log.Printf("dealer received '%s' from '%v'", request[1], request[0])
+			log.Printf("dealer received")
+			log.Println(request)
 			break
 		} else {
 			log.Fatal("Unexpected socket")

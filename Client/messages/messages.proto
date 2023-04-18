@@ -1,17 +1,3 @@
-// Course: CS6381 Distributed Systems Principles
-// Instructor: Aniruddha Gokhale
-// Created: Spring 2023
-//
-// Purpose:
-// Describe an initial schema for message exchange with the Discovery service.
-
-
-// Let us use the Version 3 syntax
-syntax = "proto3";
-
-// We will define all the enumeration types we need at the start
-
-// An enumeration for the role we are playing
 enum Role {
     ROLE_UNKNOWN = 0;
     ROLE_VOLUNTEER = 1;
@@ -39,11 +25,24 @@ message Heartbeat
 
 }
 
+message RegistrantInfo {
+    string id = 1;  // name of the entity
+    optional string addr = 2; // IP address (only for publisher)
+    optional uint32 port = 3; // port number (only for publisher)
+    optional uint32 capacity = 4;
+}
+
 message CodeMsg
 {
     string requirements = 1;
     string process_code = 2;
     string execute_code = 3;
+}
+
+message RegisterResp
+{
+    Status status = 1;   // success or failure
+    optional string reason = 2; // reason for failure
 }
 
 message JobMsg
@@ -63,6 +62,7 @@ message MainReq
                 JobMsg job_msg = 2;
                 CodeMsg code_msg = 3;
                 Heartbeat heartbeat = 4;
+                RegisterReq register_req = 5;
         }
 }
 
@@ -73,5 +73,6 @@ message MainResp
         oneof Content {
               JobResp job_resp = 2;
               Heartbeat heartbeat = 3;
+              RegisterResp register_resp = 4;
         }
 }

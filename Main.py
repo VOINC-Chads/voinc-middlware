@@ -24,23 +24,12 @@ class Main():
         self.numVolunteers = None
         self.numOccupied = None
 
-        self.code = None
-
         self.zkAddr = None
         self.zkPort = None
         self.zk = None
 
         self.quorum = None
 
-
-    def update_code(self, code):
-
-        try:
-
-            self.code = code
-
-        except Exception as e:
-            raise e
     def configure(self, args):
 
         try:
@@ -85,6 +74,7 @@ class Main():
             else:
                 information = [name, port, addr, capacity]
                 self.volunteers[str(addr) + ":" + str(port)] = information
+                self.mw_obj.set_dealer(str(addr) + ":" + str(port))
 
             self.logger.info(self.volunteers)
 
@@ -93,7 +83,6 @@ class Main():
 
         except Exception as e:
             raise e
-
 
 
     def driver(self):
@@ -129,7 +118,7 @@ def parseCmdLineArgs():
                         choices=[logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL],
                         help="logging level, choices 10,20,30,40,50: default 20=logging.INFO")
     parser.add_argument("-q", "--quorum", type=int, default=3, help="quorum size")
-    parser.add_argument("-l", "--leadersize", type=int, default=1, help="Number of replicas needed to begin")
+    parser.add_argument("-s", "--leadersize", type=int, default=1, help="Number of replicas needed to begin")
 
     return parser.parse_args()
 

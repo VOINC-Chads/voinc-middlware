@@ -1,5 +1,7 @@
 # Worker
 # Works to take in jobs and give back output of the jobs to the Main/Master
+import ast
+import subprocess
 
 import zmq
 import argparse
@@ -24,6 +26,8 @@ class Worker():
         self.capacity = None
         self.IP = None
         self.port = None
+
+        self.codeReceived = False
 
 
         self.state = self.State.INITIALIZE
@@ -86,7 +90,50 @@ class Worker():
         except Exception as e:
             raise e
 
+    def handle_job(self, job_msg, ids):
 
+        try:
+            self.logger.info("Worker::handle_job - got the job below")
+            self.logger.info(job_msg)
+
+            if not self.codeReceived:
+                self.logger.info("Code not received")
+            else:
+                jobs = job_msg.jobs
+                results = {}
+                for job in jobs:
+                    self.logger.info(job)
+                    result = process_function(job)
+                    results[job] = result
+
+                self.logger.info("Worker::handle_job - finished all parts of job given")
+                self.mw_obj.send_job_response(results, ids)
+
+        except Exception as e:
+            raise e
+
+    def handle_code(self, code_msg):
+
+        try:
+
+            self.logger.info("Worker::handle_code - got code below")
+            self.logger.info(code_msg)
+
+            reqs = code_msg.requirements
+            reqs = reqs.split("\n")
+            self.logger.info(reqs)
+
+            for req in reqs:
+                self.logger.info(req)
+                subprocess.check_call(["pip3", "install", f"{req}"])
+            exec(code_msg.execute_code, globals())
+            exec(code_msg.process_code, globals())
+
+            self.codeReceived = True
+
+
+        except Exception as e:
+            raise e
 
     def invoke_operation(self):
 
