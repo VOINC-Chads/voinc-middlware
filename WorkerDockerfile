@@ -1,0 +1,24 @@
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim-buster
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy the contents of the Middleware and Messages directories into the container at /app
+COPY Middleware /app/Middleware
+COPY Messages /app/Messages
+
+# Copy the requirements.txt file into the container at /app
+COPY requirements.txt /app
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --trusted-host pypi.python.org --no-cache-dir -r requirements.txt
+
+# Copy the Worker.py file into the container at /app
+COPY Worker.py /app
+
+# Set the default IP to localhost
+ENV IP_ADDRESS localhost
+
+# Run the command to start the application with the specified IP address
+CMD ["python", "Worker.py", "--ip", "${IP_ADDRESS}"]
