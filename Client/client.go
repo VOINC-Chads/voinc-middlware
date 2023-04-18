@@ -57,6 +57,53 @@ func main() {
 
 	log.Println("dealer created and connected")
 
+	heartbeatMsg := &messages.MainReq{
+		MsgType: messages.MsgTypes_TYPE_HEARTBEAT,
+		Content: &messages.MainReq_Heartbeat{
+			Heartbeat: &messages.Heartbeat{},
+		},
+	}
+
+	protoMsg, err := proto.Marshal(heartbeatMsg)
+	if err != nil {
+		log.Fatal("marshaling error: ", err)
+	}
+
+	err = dealer.SendFrame([]byte(protoMsg), goczmq.FlagNone)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Register a poller
+	poller, err := goczmq.NewPoller()
+	if err != nil {
+		log.Fatal(err)
+	}
+	poller.Add(dealer)
+
+	// Wait for a message
+	for {
+		socket := poller.Wait(-1)
+
+		if socket == dealer {
+			// Receive the message. Here we call RecvMessage, which
+			// will return the message as a slice of frames ([][]byte).
+			// Since this is a router socket that support async
+			// request / reply, the first frame of the message will
+			// be the routing frame.
+			request, err := dealer.RecvMessage()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			log.Printf("dealer received")
+			log.Println(request)
+			break
+		} else {
+			log.Fatal("Unexpected socket")
+		}
+	}
+
 	mainMsg := &messages.MainReq{
 		MsgType: messages.MsgTypes_TYPE_CODE,
 		Content: &messages.MainReq_CodeMsg{
@@ -68,7 +115,7 @@ func main() {
 		},
 	}
 
-	protoMsg, err := proto.Marshal(mainMsg)
+	protoMsg, err = proto.Marshal(mainMsg)
 	if err != nil {
 		log.Fatal("marshaling error: ", err)
 	}
@@ -104,13 +151,6 @@ func main() {
 
 	log.Println("dealer sent '" + string(protoMsg) + "'")
 
-	// Register a poller
-	poller, err := goczmq.NewPoller()
-	if err != nil {
-		log.Fatal(err)
-	}
-	poller.Add(dealer)
-
 	// Wait for a message
 	for {
 		socket := poller.Wait(-1)
@@ -128,7 +168,6 @@ func main() {
 
 			log.Printf("dealer received")
 			log.Println(request)
-			break
 		} else {
 			log.Fatal("Unexpected socket")
 		}

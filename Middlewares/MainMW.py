@@ -198,6 +198,24 @@ class MainMW():
 
         except Exception as e:
             raise e
+        
+    def send_heartbeat_response(self, id):
+
+        try:
+
+            resp = messages_pb2.MainResp()
+            resp.msg_type = messages_pb2.TYPE_HEARTBEAT
+
+            heartbeat_resp = messages_pb2.Heartbeat()
+
+            resp.heartbeat.CopyFrom(heartbeat_resp)
+
+            buf2send = resp.SerializeToString()
+
+            self.router.send_multipart([id, buf2send])
+
+        except Exception as e:
+            raise e
 
 
     def send_to_worker(self, message, id):
@@ -241,6 +259,10 @@ class MainMW():
                 self.logger.info("Job received")
                 self.logger.info(main_msg)
                 self.send_to_worker(main_msg, id)
+            elif main_msg.msg_type == messages_pb2.TYPE_HEARTBEAT:
+                self.logger.info("Heartbeat received")
+                self.logger.info(main_msg)
+                self.send_heartbeat_response(id)
 
 
 

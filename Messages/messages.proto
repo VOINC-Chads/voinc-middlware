@@ -15,11 +15,11 @@ enum Status {
 }
 
 enum MsgTypes {
-     TYPE_UNKNOWN = 0;
-     TYPE_REGISTER = 1;  // used by pub, sub and broker.
-     TYPE_JOB = 2;
-        TYPE_CODE = 3;
-        TYPE_HEARTBEAT = 4;
+    TYPE_UNKNOWN = 0;
+    TYPE_REGISTER = 1;  // used by pub, sub and broker.
+    TYPE_JOB = 2;
+    TYPE_CODE = 3;
+    TYPE_HEARTBEAT = 4;
 }
 
 
