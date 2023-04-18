@@ -18,7 +18,7 @@ RUN pip install --trusted-host pypi.python.org --no-cache-dir -r requirements.tx
 COPY Worker.py /app
 
 # Set the default IP to localhost
-ENV IP_ADDRESS localhost
+ENV ZK_IP_ADDR localhost
 
 # Run the command to start the application with the specified IP address
-CMD ["python", "Worker.py", "--ip", "${IP_ADDRESS}"]
+CMD python Worker.py -a 0.0.0.0 -z ${ZK_IP_ADDR}

@@ -4,7 +4,7 @@
 
 import zmq
 from Messages import messages_pb2
-from Middlewares.zookeeper import ZK
+from Middleware.zookeeper import ZK
 import requests
 import time
 

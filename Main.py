@@ -6,8 +6,8 @@
 
 import argparse
 import zmq
-from Middlewares.MainMW import MainMW
-from Middlewares.zookeeper import ZK
+from Middleware.MainMW import MainMW
+from Middleware.zookeeper import ZK
 import logging
 
 class Main():
@@ -111,7 +111,7 @@ def parseCmdLineArgs():
 
     parser.add_argument("-n", "--name", default="main", help="Name assigned to master")
     parser.add_argument("-a", "--addr", default="localhost", help="Address process is running on")
-    parser.add_argument("-p", "--port", default="5000", help="Port process is running on")
+    parser.add_argument("-p", "--port", default="8000", help="Port process is running on")
     parser.add_argument("-z", "--zkaddr", default="localhost", help="Address zookeeper is running on")
     parser.add_argument("-o", "--zkport", default="2181", help="Port zookeeper is running on")
     parser.add_argument("-l", "--loglevel", type=int, default=logging.INFO,
