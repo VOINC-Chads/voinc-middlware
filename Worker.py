@@ -127,8 +127,13 @@ class Worker():
                 for req in reqs:
                     self.logger.info(req)
                     subprocess.check_call(["pip3", "install", f"{req}"])
-            exec(code_msg.execute_code, globals())
-            exec(code_msg.process_code, globals())
+            process = code_msg.process_code
+            execute = code_msg.execute_code
+
+            process = process.replace("\\\\", "\\")
+            execute = execute.replace("\\\\", "\\")
+            exec(process, globals())
+            exec(execute, globals())
 
             self.codeReceived = True
 
