@@ -129,9 +129,7 @@ class Worker():
                     subprocess.check_call(["pip3", "install", f"{req}"])
             process = code_msg.process_code
             execute = code_msg.execute_code
-
-            process = process.replace("\\\\", "\\")
-            execute = execute.replace("\\\\", "\\")
+            
             exec(process, globals())
             exec(execute, globals())
 
