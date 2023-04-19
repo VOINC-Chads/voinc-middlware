@@ -71,7 +71,7 @@ class MainMW():
         except Exception as e:
             raise e
     def configure(self, args):
-
+        self.logger.info("MainMW::configure")
         try:
 
             self.port = args.port
@@ -128,7 +128,7 @@ class MainMW():
 
 
     def handle_fault(self, leader):
-
+        self.logger.info("MainMW::handle_fault")
         try:
 
             self.logger.info("MainMW::handle_fault - fault occurred, so handling now")
@@ -181,7 +181,7 @@ class MainMW():
 
 
     def send_register_response(self, status, id):
-
+        self.logger.info("MainMW::send_register_response")
         try:
 
             resp = messages_pb2.MainResp()
@@ -200,7 +200,7 @@ class MainMW():
             raise e
         
     def send_heartbeat_response(self, id):
-
+        self.logger.info("MainMW::send_heartbeat_response")
         try:
 
             resp = messages_pb2.MainResp()
@@ -219,13 +219,14 @@ class MainMW():
 
 
     def send_to_worker(self, message, id):
-
+        self.logger.info("MainMW::send_to_worker")
         try:
 
             buf2send = message.SerializeToString()
 
 
             for worker in self.dealers:
+                self.logger.info("Sending to worker {}".format(worker))
                 socket = self.dealers[worker]
                 socket.send_multipart([id, buf2send])
 
@@ -235,7 +236,7 @@ class MainMW():
             raise e
 
     def handle_message(self):
-
+        self.logger.info("MainMW::handle_message")
         try:
 
             self.logger.info("MainMW::handle_message")

@@ -122,11 +122,11 @@ class WorkerMW():
                     timeout = self.upcall_obj.invoke_operation()
 
                 elif self.dealer in events:
-
+                    self.logger.info("WorkerMW::event_loop - dealer sent a message")
                     timeout = self.handle_response()
 
                 elif self.router in events:
-
+                    self.logger.info("WorkerMW::event_loop - router sent a message")
                     timeout = self.handle_code_or_job()
 
         except Exception as e:
@@ -197,10 +197,8 @@ class WorkerMW():
             raise e
 
     def handle_response(self):
-
-
+        self.logger.info("WorkerMW::handle_response - main sent a response to handle")
         try:
-
             timeout = None
 
             recvd = self.dealer.recv()
@@ -208,9 +206,9 @@ class WorkerMW():
             resp = messages_pb2.MainResp()
             resp.ParseFromString(recvd)
 
-
+            self.logger.info("WorkerMW::handle_response - received response")
             if resp.msg_type == messages_pb2.TYPE_REGISTER:
-
+                self.logger.info("WorkerMW::handle_response - received registration response")
                 timeout = self.upcall_obj.register_response(resp.register_resp)
 
             return timeout
