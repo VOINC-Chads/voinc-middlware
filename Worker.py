@@ -120,12 +120,13 @@ class Worker():
             self.logger.info(code_msg)
 
             reqs = code_msg.requirements
-            reqs = reqs.split("\n")
-            self.logger.info(reqs)
-
-            for req in reqs:
-                self.logger.info(req)
-                subprocess.check_call(["pip3", "install", f"{req}"])
+            if len(reqs) > 0:
+                reqs = reqs.split("\n")
+                self.logger.info(reqs)
+                
+                for req in reqs:
+                    self.logger.info(req)
+                    subprocess.check_call(["pip3", "install", f"{req}"])
             exec(code_msg.execute_code, globals())
             exec(code_msg.process_code, globals())
 
