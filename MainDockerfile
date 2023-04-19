@@ -17,5 +17,9 @@ RUN pip install --trusted-host pypi.python.org --no-cache-dir -r requirements.tx
 # Copy the Main.py file into the container at /app
 COPY Main.py /app
 
+
+# Set the default IP to localhost
+ENV ZK_IP_ADDR localhost
+
 # Run the command to start the application
-CMD ["python", "Main.py"]
+CMD python Main.py -a ${ZK_IP_ADDR} -z ${ZK_IP_ADDR}

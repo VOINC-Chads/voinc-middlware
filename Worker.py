@@ -6,7 +6,7 @@ import subprocess
 import zmq
 import argparse
 import logging
-from Middlewares.WorkerMW import WorkerMW
+from Middleware.WorkerMW import WorkerMW
 from enum import Enum
 
 class Worker():
@@ -177,7 +177,7 @@ def parseCmdLineArgs():
 
     parser.add_argument("-n", "--name", default="worker", help="Name assigned to master")
     parser.add_argument("-a", "--addr", default="localhost", help="Address process is running on")
-    parser.add_argument("-p", "--port", default="7000", help="Port process is running on")
+    parser.add_argument("-p", "--port", default="8001", help="Port process is running on")
     parser.add_argument("-c", "--capacity", default=2048, help="Storage capacity for job to take place")
     parser.add_argument("-z", "--zkaddr", default="localhost", help="Address zookeeper is running on")
     parser.add_argument("-o", "--zkport", default="2181", help="Port zookeeper is running on")
