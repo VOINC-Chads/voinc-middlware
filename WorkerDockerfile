@@ -20,5 +20,7 @@ COPY Worker.py /app
 # Set the default IP to localhost
 ENV ZK_IP_ADDR localhost
 
+ENV IP_ADDR localhost
+
 # Run the command to start the application with the specified IP address
-CMD python Worker.py -a 0.0.0.0 -z ${ZK_IP_ADDR}
+CMD python Worker.py -a ${IP_ADDR} -z ${ZK_IP_ADDR}
