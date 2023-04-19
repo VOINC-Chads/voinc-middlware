@@ -173,15 +173,9 @@ class MainMW():
 
                             recvd = socket.recv_multipart()
                             self.logger.info(recvd)
-
-                            mainResp = messages_pb2.MainResp()
-                            mainResp.msg_type = messages_pb2.TYPE_JOB_RESP
-                            mainResp.job_resp.CopyFrom(recvd[1])
-
-                            buf2send = mainResp.SerializeToString()
                             
                             # Do some extra consensus work
-                            self.router.send_multipart([buf2send])
+                            self.router.send_multipart(recvd))
 
         except Exception as e:
             raise e
