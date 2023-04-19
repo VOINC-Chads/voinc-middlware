@@ -178,7 +178,7 @@ class MainMW():
 
 
                             self.logger.info(recvd)
-                            # Do some extra consensus work
+
                             self.upcall_obj.quorum_met(recvd)
                             self.router.send_multipart(recvd)
 
