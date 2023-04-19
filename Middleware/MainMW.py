@@ -1,6 +1,6 @@
 # MainMW
 # Purpose is to fulfill requests and message sending.
-
+import random
 
 import zmq
 from Messages import messages_pb2
@@ -35,6 +35,7 @@ class MainMW():
 
         self.replicaSub = None
         self.leaderPub = None
+        self.quorum = None
 
     def anyof(self, events):
 
@@ -79,6 +80,8 @@ class MainMW():
             self.zkPort = args.zkport
             self.zkAddr = args.zkaddr
             self.leaderQuorum = args.leadersize
+
+            self.quorum = args.quorum
 
             self.zk = ZK(self.zkPort, self.zkAddr, self.logger)
 
@@ -172,8 +175,11 @@ class MainMW():
                             self.logger.info("Received job response from worker")
 
                             recvd = socket.recv_multipart()
+
+
                             self.logger.info(recvd)
                             # Do some extra consensus work
+                            self.upcall_obj.quorum_met(recvd)
                             self.router.send_multipart(recvd)
 
         except Exception as e:
@@ -224,8 +230,13 @@ class MainMW():
 
             buf2send = message.SerializeToString()
 
+            quorums = random.sample(self.dealers.keys(), self.quorum)
 
-            for worker in self.dealers:
+            self.logger.info("Sending the following message to workers")
+            self.logger.info(message)
+            self.logger.info(quorums)
+
+            for worker in quorums:
                 self.logger.info("Sending to worker {}".format(worker))
                 socket = self.dealers[worker]
                 socket.send_multipart([id, buf2send])
@@ -259,7 +270,17 @@ class MainMW():
             elif main_msg.msg_type == messages_pb2.TYPE_JOB:
                 self.logger.info("Job received")
                 self.logger.info(main_msg)
-                self.send_to_worker(main_msg, id)
+
+                for job in main_msg.job_msg.jobs:
+
+                    main_sing_job_msg = messages_pb2.MainReq()
+                    job_msg = messages_pb2.JobMsg()
+                    job_msg.append(job)
+
+                    main_sing_job_msg.job_msg.CopyFrom(job_msg)
+
+                    self.send_to_worker(main_sing_job_msg, id)
+
             elif main_msg.msg_type == messages_pb2.TYPE_HEARTBEAT:
                 self.logger.info("Heartbeat received")
                 self.logger.info(main_msg)

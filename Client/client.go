@@ -131,7 +131,7 @@ func main() {
 		MsgType: messages.MsgTypes_TYPE_JOB,
 		Content: &messages.MainReq_JobMsg{
 			JobMsg: &messages.JobMsg{
-				Jobs: []string{"1"},
+				Jobs: []string{"1", "2"},
 			},
 		},
 	}

@@ -9,6 +9,7 @@ import zmq
 from Middleware.MainMW import MainMW
 from Middleware.zookeeper import ZK
 import logging
+from Messages import messages_pb2
 
 class Main():
 
@@ -17,7 +18,7 @@ class Main():
 
         self.logger = logger
         self.volunteers = {}
-        self.pending = set()
+        self.pending = {}
         self.mw_obj = None
         self.name = None
 
@@ -30,6 +31,28 @@ class Main():
 
         self.quorum = None
 
+    def quorum_met(self, main_resp):
+
+        try:
+            resp = messages_pb2.MainResp()
+            resp.ParseFromString(main_resp)
+
+            job_resp = resp.job_resp
+
+            for result in job_resp.results:
+
+                value = result.value
+                result = result.result
+
+                if value not in self.pending:
+                    self.pending[value] = []
+                self.pending[value].append(result)
+
+
+
+
+        except Exception as e:
+            raise e
     def configure(self, args):
 
         try:
@@ -39,6 +62,7 @@ class Main():
             self.numOccupied = 0
             self.numVolunteers = 0
             self.name = args.name
+            self.quorum = args.quorum
 
             self.zkAddr = args.zkaddr
             self.zkPort = args.zkport
@@ -117,7 +141,7 @@ def parseCmdLineArgs():
     parser.add_argument("-l", "--loglevel", type=int, default=logging.INFO,
                         choices=[logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL],
                         help="logging level, choices 10,20,30,40,50: default 20=logging.INFO")
-    parser.add_argument("-q", "--quorum", type=int, default=3, help="quorum size")
+    parser.add_argument("-q", "--quorum", type=int, default=1, help="quorum size")
     parser.add_argument("-s", "--leadersize", type=int, default=1, help="Number of replicas needed to begin")
 
     return parser.parse_args()

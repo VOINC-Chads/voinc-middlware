@@ -132,6 +132,10 @@ class Worker():
 
             process = process.replace("\\\\", "\\")
             execute = execute.replace("\\\\", "\\")
+
+            self.logger.info(process)
+            self.logger.info(execute)
+
             exec(process, globals())
             exec(execute, globals())
 
