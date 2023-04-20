@@ -66,6 +66,7 @@ class Main():
                 self.pending[id][value].append(result)
 
 
+
                 self.logger.info("Values present after append: {}".format(self.pending[id][value]))
 
                 if len(self.pending[id][value]) == self.quorum:
@@ -85,6 +86,20 @@ class Main():
         except Exception as e:
             raise e
 
+
+    def get_heartbeat_info(self):
+        try:
+
+            jobs = 0
+            for id in self.pending:
+                jobs += len(self.pending[id].keys())
+
+            workers = len(self.volunteers.keys())
+
+            return jobs, workers
+
+        except Exception as e:
+            raise e
     def find_consensus(self, value, id):
 
         try:

@@ -244,6 +244,11 @@ class MainMW():
 
             heartbeat_resp = messages_pb2.Heartbeat()
 
+            pending_jobs, total_workers = self.upcall_obj.get_heartbeat_info()
+
+            heartbeat_resp.pending_jobs = pending_jobs
+            heart_resp.total_workers = total_workers
+
             resp.heartbeat.CopyFrom(heartbeat_resp)
 
             buf2send = resp.SerializeToString()
