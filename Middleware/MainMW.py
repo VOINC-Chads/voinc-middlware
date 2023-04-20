@@ -180,10 +180,40 @@ class MainMW():
                             self.logger.info(recvd)
 
                             self.upcall_obj.quorum_met(recvd)
-                            self.router.send_multipart(recvd)
 
         except Exception as e:
             raise e
+
+    def send_job_resp(self, id, value, result):
+
+        try:
+
+            self.logger.info("MainMW::send_job_resp - quorum reached so building resp")
+
+            job_res = messages_pb2.JobResult()
+            job_res.value = value
+            job_res.result = result
+
+            job_resp = messages_pb2.JobResp()
+            job_resp.status = 1
+            job_resp.results.append(job_res)
+
+            main_resp = messages_pb2.MainResp()
+            main_resp.msg_type = messages_pb2.TYPE_JOB
+            main_resp.job_resp.CopyFrom(job_resp)
+
+            self.logger.info("MainMW::send_job_resp - sending back response below")
+            self.logger.info(main_resp)
+            buf2send = main_resp.SerializeToString()
+
+            self.router.send_multipart([id, buf2send])
+
+            self.logger.info("Sent")
+
+
+        except Exception as e:
+            raise e
+
 
 
     def send_register_response(self, status, id):
@@ -228,8 +258,13 @@ class MainMW():
         self.logger.info("MainMW::send_to_worker")
         try:
 
+            self.upcall_obj.set_pending(id)
+
             buf2send = message.SerializeToString()
 
+            if len(self.dealers.keys()) < self.quorum:
+                self.logger.info("MainMW::send_to_worker - quorum size not met, so stopped")
+                return
             quorums = random.sample(self.dealers.keys(), self.quorum)
 
             self.logger.info("Sending the following message to workers")
@@ -275,8 +310,9 @@ class MainMW():
 
                     main_sing_job_msg = messages_pb2.MainReq()
                     job_msg = messages_pb2.JobMsg()
-                    job_msg.append(job)
+                    job_msg.jobs.append(job)
 
+                    main_sing_job_msg.msg_type = messages_pb2.TYPE_JOB
                     main_sing_job_msg.job_msg.CopyFrom(job_msg)
 
                     self.send_to_worker(main_sing_job_msg, id)

@@ -156,8 +156,6 @@ class WorkerMW():
             main_resp.msg_type = messages_pb2.TYPE_JOB
             main_resp.job_resp.CopyFrom(job_resp)
 
-            main_resp.msg_type = messages_pb2
-
             self.logger.info("Sending back")
             self.logger.info(main_resp)
 

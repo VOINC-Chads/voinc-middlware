@@ -43,7 +43,7 @@ func main() {
 
 	requirements = string(fileContent)
 
-	flag.IntVar(&port, "p", 5000, "Provide a port number")
+	flag.IntVar(&port, "p", 8000, "Provide a port number")
 	flag.StringVar(&addr, "a", "localhost", "Provide an address for VOINC master")
 
 	flag.Parse()

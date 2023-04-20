@@ -31,24 +31,74 @@ class Main():
 
         self.quorum = None
 
+    def set_pending(self, id):
+
+        try:
+
+            self.logger.info("Main::set_pending - setting job came in from id mentioned {}".format(id))
+
+            if id not in self.pending:
+                self.pending[id] = {}
+
+        except Exception as e:
+            raise e
     def quorum_met(self, main_resp):
 
         try:
+            self.logger.info("Main::quorum_met - checking if value has quorum met")
             resp = messages_pb2.MainResp()
-            resp.ParseFromString(main_resp)
+            resp.ParseFromString(main_resp[1])
+            id = main_resp[0]
 
             job_resp = resp.job_resp
+
+            self.logger.info(self.pending)
 
             for result in job_resp.results:
 
                 value = result.value
                 result = result.result
 
-                if value not in self.pending:
-                    self.pending[value] = []
-                self.pending[value].append(result)
+                self.logger.info("Checking quorum for {}".format(value))
+
+                if value not in self.pending[id]:
+                    self.pending[id][value] = []
+                self.pending[id][value].append(result)
 
 
+                self.logger.info("Values present after append: {}".format(self.pending[id][value]))
+
+                if len(self.pending[id][value]) == self.quorum:
+                    self.logger.info("Quorum size met")
+                    consensus_result = self.find_consensus(value, id)
+                    self.pending[id].pop(value)
+                    self.mw_obj.send_job_resp(main_resp[0], value, consensus_result)
+                    self.logger.info(self.pending)
+                    return True
+
+            self.logger.info("Main::quorum_met - quorum not met, so nothing sent back")
+            return False
+
+
+
+
+        except Exception as e:
+            raise e
+
+    def find_consensus(self, value, id):
+
+        try:
+
+            results = self.pending[id][value]
+            occurrences = {}
+            for val in results:
+                if val not in occurrences:
+                    occurrences[val] = 0
+                occurrences[val] += 1
+
+            max_result = max(occurrences, key=occurrences.get)
+
+            return max_result
 
 
         except Exception as e:
