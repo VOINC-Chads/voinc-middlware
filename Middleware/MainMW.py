@@ -37,6 +37,8 @@ class MainMW():
         self.leaderPub = None
         self.quorum = None
 
+        self.code = None
+
     def anyof(self, events):
 
         try:
@@ -161,25 +163,25 @@ class MainMW():
             while True:
 
                 events = dict(self.poller.poll(timeout=timeout))
-                self.logger.info(events)
+
                 if self.router in events:
 
                     self.handle_message()
-
-                elif self.anyof(events):
-
-                    for worker in self.dealers:
-                        socket = self.dealers[worker]
-                        if socket in events:
-
-                            self.logger.info("Received job response from worker")
-
-                            recvd = socket.recv_multipart()
-
-
-                            self.logger.info(recvd)
-
-                            self.upcall_obj.quorum_met(recvd)
+                #
+                # elif self.anyof(events):
+                #
+                #     for worker in self.dealers:
+                #         socket = self.dealers[worker]
+                #         if socket in events:
+                #
+                #             self.logger.info("Received job response from worker")
+                #
+                #             recvd = socket.recv_multipart()
+                #
+                #
+                #             self.logger.info(recvd)
+                #
+                #             self.upcall_obj.quorum_met(recvd)
 
         except Exception as e:
             raise e
@@ -236,7 +238,7 @@ class MainMW():
             raise e
         
     def send_heartbeat_response(self, id):
-        self.logger.info("MainMW::send_heartbeat_response")
+        self.logger.info("MainMW::send_heartbeat_response to {}".format(id))
         try:
 
             resp = messages_pb2.MainResp()
@@ -247,7 +249,7 @@ class MainMW():
             pending_jobs, total_workers = self.upcall_obj.get_heartbeat_info()
 
             heartbeat_resp.pending_jobs = pending_jobs
-            heart_resp.total_workers = total_workers
+            heartbeat_resp.total_workers = total_workers
 
             resp.heartbeat.CopyFrom(heartbeat_resp)
 
@@ -263,14 +265,15 @@ class MainMW():
         self.logger.info("MainMW::send_to_worker")
         try:
 
+            ids = self.upcall_obj.ids
             self.upcall_obj.set_pending(id)
 
             buf2send = message.SerializeToString()
 
-            if len(self.dealers.keys()) < self.quorum:
+            if len(ids) < self.quorum:
                 self.logger.info("MainMW::send_to_worker - quorum size not met, so stopped")
                 return
-            quorums = random.sample(self.dealers.keys(), self.quorum)
+            quorums = random.sample(ids, self.quorum)
 
             self.logger.info("Sending the following message to workers")
             self.logger.info(message)
@@ -278,10 +281,59 @@ class MainMW():
 
             for worker in quorums:
                 self.logger.info("Sending to worker {}".format(worker))
-                socket = self.dealers[worker]
-                socket.send_multipart([id, buf2send])
+                #socket = self.dealers[worker]
+                self.logger.info("Sending to {}".format([worker, buf2send]))
+                self.router.send_multipart([worker, buf2send])
 
 
+
+        except Exception as e:
+            raise e
+
+    def send_code(self, message):
+
+        try:
+            self.logger.info("MainMW::send_code - sending code to all ready workers")
+            main_resp = messages_pb2.MainResp()
+            main_resp.msg_type = messages_pb2.TYPE_CODE
+
+            main_resp.code_msg.CopyFrom(message.code_msg)
+
+            buf2send = main_resp.SerializeToString()
+
+            for id in self.upcall_obj.ids:
+
+                self.router.send_multipart([id, buf2send])
+
+            self.logger.info("Sent to all workers")
+
+
+        except Exception as e:
+            raise e
+
+    def send_job(self, message, id):
+
+        try:
+            self.logger.info("MainMW::send_job - sending job to workers")
+
+            ids = self.upcall_obj.ids
+            self.upcall_obj.set_pending(id)
+
+            buf2send = message.SerializeToString()
+
+            if len(ids) < self.quorum:
+                self.logger.info("MainMW::send_to_worker - quorum size not met, so stopped")
+                return
+            quorums = random.sample(ids, self.quorum)
+
+            self.logger.info("Sending the following message to workers")
+            self.logger.info(message)
+            self.logger.info(quorums)
+
+            for worker in quorums:
+                self.logger.info("Sending to worker {}".format(worker))
+                self.logger.info("Sending {}".format([worker, buf2send]))
+                self.router.send_multipart([worker, buf2send])
 
         except Exception as e:
             raise e
@@ -299,33 +351,39 @@ class MainMW():
             main_msg = messages_pb2.MainReq()
             main_msg.ParseFromString(message)
 
+            self.logger.info(main_msg)
+
             if main_msg.msg_type == messages_pb2.TYPE_REGISTER:
                 self.logger.info("Register received")
-                self.logger.info(main_msg)
                 self.upcall_obj.register_volunteer(main_msg.register_req, id)
             elif main_msg.msg_type == messages_pb2.TYPE_CODE:
                 self.logger.info("Code received")
-                self.logger.info(main_msg)
-                self.send_to_worker(main_msg, id)
+                self.send_code(main_msg)
             elif main_msg.msg_type == messages_pb2.TYPE_JOB:
                 self.logger.info("Job received")
-                self.logger.info(main_msg)
-
                 for job in main_msg.job_msg.jobs:
 
-                    main_sing_job_msg = messages_pb2.MainReq()
+                    main_sing_job_msg = messages_pb2.MainResp()
                     job_msg = messages_pb2.JobMsg()
                     job_msg.jobs.append(job)
+                    job_msg.id = id.hex()
 
                     main_sing_job_msg.msg_type = messages_pb2.TYPE_JOB
                     main_sing_job_msg.job_msg.CopyFrom(job_msg)
+                    self.logger.info("Job from id {}".format(id))
+                    self.send_job(main_sing_job_msg, id)
 
-                    self.send_to_worker(main_sing_job_msg, id)
-
+            elif main_msg.msg_type == messages_pb2.TYPE_JOB_COMPLETE:
+                self.logger.info("Worker completed job")
+                client_id = main_msg.job_resp.id
+                self.upcall_obj.quorum_met(main_msg, client_id)
             elif main_msg.msg_type == messages_pb2.TYPE_HEARTBEAT:
                 self.logger.info("Heartbeat received")
-                self.logger.info(main_msg)
                 self.send_heartbeat_response(id)
+
+            elif main_msg.msg_type == messages_pb2.TYPE_READY:
+                self.logger.info("Worker is ready")
+                self.upcall_obj.handle_ids(id)
 
 
 

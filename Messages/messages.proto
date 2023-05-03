@@ -20,6 +20,8 @@ enum MsgTypes {
     TYPE_JOB = 2;
     TYPE_CODE = 3;
     TYPE_HEARTBEAT = 4;
+    TYPE_READY = 5;
+    TYPE_JOB_COMPLETE = 6;
 }
 
 
@@ -34,6 +36,10 @@ message RegistrantInfo {
     string addr = 2; // IP address (only for publisher)
     uint32 port = 3; // port number (only for publisher)
     uint32 capacity = 4;
+}
+
+message Ready {
+
 }
 
 message CodeMsg
@@ -65,11 +71,13 @@ message JobResp
 {
     Status status = 1;
     repeated JobResult results = 2;
+    string id = 3;
 }
 
 message JobMsg
 {
     repeated string jobs = 1;
+    optional string id = 2;
 }
 
 message MainReq
@@ -80,6 +88,8 @@ message MainReq
                 CodeMsg code_msg = 3;
                 Heartbeat heartbeat = 4;
                 RegisterReq register_req = 5;
+                Ready is_ready = 6;
+                JobResp job_resp = 7;
         }
 }
 
@@ -91,5 +101,7 @@ message MainResp
               JobResp job_resp = 2;
               Heartbeat heartbeat = 3;
               RegisterResp register_resp = 4;
+              CodeMsg code_msg = 5;
+              JobMsg job_msg = 6;
         }
 }

@@ -152,8 +152,9 @@ class WorkerMW():
 
                 job_resp.results.append(job_res)
 
-            main_resp = messages_pb2.MainResp()
-            main_resp.msg_type = messages_pb2.TYPE_JOB
+            job_resp.id = ids
+            main_resp = messages_pb2.MainReq()
+            main_resp.msg_type = messages_pb2.TYPE_JOB_COMPLETE
             main_resp.job_resp.CopyFrom(job_resp)
 
             self.logger.info("Sending back")
@@ -161,13 +162,30 @@ class WorkerMW():
 
             buf2send = main_resp.SerializeToString()
 
-            self.router.send_multipart(ids + [buf2send])
+            self.dealer.send(buf2send)
 
             self.logger.info("Sent")
 
         except Exception as e:
             raise e
 
+    def send_ready(self):
+
+        try:
+
+            self.logger.info("WorkerMW::send_ready - sending ready message to main.")
+
+            is_ready = messages_pb2.Ready()
+            main_req = messages_pb2.MainReq()
+
+            main_req.is_ready.CopyFrom(is_ready)
+            main_req.msg_type = messages_pb2.TYPE_READY
+            buf2send = main_req.SerializeToString()
+
+            self.dealer.send(buf2send)
+
+        except Exception as e:
+            raise e
     def handle_code_or_job(self):
 
         try:
@@ -181,7 +199,8 @@ class WorkerMW():
             main_msg.ParseFromString(message)
 
             if main_msg.msg_type == messages_pb2.TYPE_CODE:
-                self.upcall_obj.handle_code(main_msg.code_msg)
+                self.logger.info(main_msg)
+                #self.upcall_obj.handle_code(main_msg.code_msg)
             elif main_msg.msg_type == messages_pb2.TYPE_JOB:
                 self.upcall_obj.handle_job(main_msg.job_msg, ids)
 
@@ -211,6 +230,13 @@ class WorkerMW():
             if resp.msg_type == messages_pb2.TYPE_REGISTER:
                 self.logger.info("WorkerMW::handle_response - received registration response")
                 timeout = self.upcall_obj.register_response(resp.register_resp)
+            elif resp.msg_type == messages_pb2.TYPE_CODE:
+                self.logger.info(resp)
+                self.upcall_obj.handle_code(resp.code_msg)
+            elif resp.msg_type == messages_pb2.TYPE_JOB:
+                self.logger.info(resp)
+                self.logger.info("To send back to {}".format(id))
+                self.upcall_obj.handle_job(resp.job_msg)
 
             return timeout
 

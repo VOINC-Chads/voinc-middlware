@@ -13,37 +13,39 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17Messages/messages.proto\"8\n\tHeartbeat\x12\x14\n\x0cpending_jobs\x18\x01 \x01(\r\x12\x15\n\rtotal_workers\x18\x02 \x01(\r\"J\n\x0eRegistrantInfo\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04\x61\x64\x64r\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\r\x12\x10\n\x08\x63\x61pacity\x18\x04 \x01(\r\"K\n\x07\x43odeMsg\x12\x14\n\x0crequirements\x18\x01 \x01(\t\x12\x14\n\x0cprocess_code\x18\x02 \x01(\t\x12\x14\n\x0c\x65xecute_code\x18\x03 \x01(\t\"A\n\x0bRegisterReq\x12\x13\n\x04role\x18\x01 \x01(\x0e\x32\x05.Role\x12\x1d\n\x04info\x18\x02 \x01(\x0b\x32\x0f.RegistrantInfo\"G\n\x0cRegisterResp\x12\x17\n\x06status\x18\x01 \x01(\x0e\x32\x07.Status\x12\x13\n\x06reason\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\t\n\x07_reason\"*\n\tJobResult\x12\r\n\x05value\x18\x01 \x01(\t\x12\x0e\n\x06result\x18\x02 \x01(\t\"?\n\x07JobResp\x12\x17\n\x06status\x18\x01 \x01(\x0e\x32\x07.Status\x12\x1b\n\x07results\x18\x02 \x03(\x0b\x32\n.JobResult\"\x16\n\x06JobMsg\x12\x0c\n\x04jobs\x18\x01 \x03(\t\"\xb2\x01\n\x07MainReq\x12\x1b\n\x08msg_type\x18\x01 \x01(\x0e\x32\t.MsgTypes\x12\x1a\n\x07job_msg\x18\x02 \x01(\x0b\x32\x07.JobMsgH\x00\x12\x1c\n\x08\x63ode_msg\x18\x03 \x01(\x0b\x32\x08.CodeMsgH\x00\x12\x1f\n\theartbeat\x18\x04 \x01(\x0b\x32\n.HeartbeatH\x00\x12$\n\x0cregister_req\x18\x05 \x01(\x0b\x32\x0c.RegisterReqH\x00\x42\t\n\x07\x43ontent\"\x99\x01\n\x08MainResp\x12\x1b\n\x08msg_type\x18\x01 \x01(\x0e\x32\t.MsgTypes\x12\x1c\n\x08job_resp\x18\x02 \x01(\x0b\x32\x08.JobRespH\x00\x12\x1f\n\theartbeat\x18\x03 \x01(\x0b\x32\n.HeartbeatH\x00\x12&\n\rregister_resp\x18\x04 \x01(\x0b\x32\r.RegisterRespH\x00\x42\t\n\x07\x43ontent*,\n\x04Role\x12\x10\n\x0cROLE_UNKNOWN\x10\x00\x12\x12\n\x0eROLE_VOLUNTEER\x10\x01*\\\n\x06Status\x12\x12\n\x0eSTATUS_UNKNOWN\x10\x00\x12\x12\n\x0eSTATUS_SUCCESS\x10\x01\x12\x12\n\x0eSTATUS_FAILURE\x10\x02\x12\x16\n\x12STATUS_CHECK_AGAIN\x10\x03*`\n\x08MsgTypes\x12\x10\n\x0cTYPE_UNKNOWN\x10\x00\x12\x11\n\rTYPE_REGISTER\x10\x01\x12\x0c\n\x08TYPE_JOB\x10\x02\x12\r\n\tTYPE_CODE\x10\x03\x12\x12\n\x0eTYPE_HEARTBEAT\x10\x04\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17Messages/messages.proto\"8\n\tHeartbeat\x12\x14\n\x0cpending_jobs\x18\x01 \x01(\r\x12\x15\n\rtotal_workers\x18\x02 \x01(\r\"J\n\x0eRegistrantInfo\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04\x61\x64\x64r\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\r\x12\x10\n\x08\x63\x61pacity\x18\x04 \x01(\r\"\x07\n\x05Ready\"K\n\x07\x43odeMsg\x12\x14\n\x0crequirements\x18\x01 \x01(\t\x12\x14\n\x0cprocess_code\x18\x02 \x01(\t\x12\x14\n\x0c\x65xecute_code\x18\x03 \x01(\t\"A\n\x0bRegisterReq\x12\x13\n\x04role\x18\x01 \x01(\x0e\x32\x05.Role\x12\x1d\n\x04info\x18\x02 \x01(\x0b\x32\x0f.RegistrantInfo\"G\n\x0cRegisterResp\x12\x17\n\x06status\x18\x01 \x01(\x0e\x32\x07.Status\x12\x13\n\x06reason\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\t\n\x07_reason\"*\n\tJobResult\x12\r\n\x05value\x18\x01 \x01(\t\x12\x0e\n\x06result\x18\x02 \x01(\t\"K\n\x07JobResp\x12\x17\n\x06status\x18\x01 \x01(\x0e\x32\x07.Status\x12\x1b\n\x07results\x18\x02 \x03(\x0b\x32\n.JobResult\x12\n\n\x02id\x18\x03 \x01(\t\".\n\x06JobMsg\x12\x0c\n\x04jobs\x18\x01 \x03(\t\x12\x0f\n\x02id\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\x05\n\x03_id\"\xec\x01\n\x07MainReq\x12\x1b\n\x08msg_type\x18\x01 \x01(\x0e\x32\t.MsgTypes\x12\x1a\n\x07job_msg\x18\x02 \x01(\x0b\x32\x07.JobMsgH\x00\x12\x1c\n\x08\x63ode_msg\x18\x03 \x01(\x0b\x32\x08.CodeMsgH\x00\x12\x1f\n\theartbeat\x18\x04 \x01(\x0b\x32\n.HeartbeatH\x00\x12$\n\x0cregister_req\x18\x05 \x01(\x0b\x32\x0c.RegisterReqH\x00\x12\x1a\n\x08is_ready\x18\x06 \x01(\x0b\x32\x06.ReadyH\x00\x12\x1c\n\x08job_resp\x18\x07 \x01(\x0b\x32\x08.JobRespH\x00\x42\t\n\x07\x43ontent\"\xd3\x01\n\x08MainResp\x12\x1b\n\x08msg_type\x18\x01 \x01(\x0e\x32\t.MsgTypes\x12\x1c\n\x08job_resp\x18\x02 \x01(\x0b\x32\x08.JobRespH\x00\x12\x1f\n\theartbeat\x18\x03 \x01(\x0b\x32\n.HeartbeatH\x00\x12&\n\rregister_resp\x18\x04 \x01(\x0b\x32\r.RegisterRespH\x00\x12\x1c\n\x08\x63ode_msg\x18\x05 \x01(\x0b\x32\x08.CodeMsgH\x00\x12\x1a\n\x07job_msg\x18\x06 \x01(\x0b\x32\x07.JobMsgH\x00\x42\t\n\x07\x43ontent*,\n\x04Role\x12\x10\n\x0cROLE_UNKNOWN\x10\x00\x12\x12\n\x0eROLE_VOLUNTEER\x10\x01*\\\n\x06Status\x12\x12\n\x0eSTATUS_UNKNOWN\x10\x00\x12\x12\n\x0eSTATUS_SUCCESS\x10\x01\x12\x12\n\x0eSTATUS_FAILURE\x10\x02\x12\x16\n\x12STATUS_CHECK_AGAIN\x10\x03*\x87\x01\n\x08MsgTypes\x12\x10\n\x0cTYPE_UNKNOWN\x10\x00\x12\x11\n\rTYPE_REGISTER\x10\x01\x12\x0c\n\x08TYPE_JOB\x10\x02\x12\r\n\tTYPE_CODE\x10\x03\x12\x12\n\x0eTYPE_HEARTBEAT\x10\x04\x12\x0e\n\nTYPE_READY\x10\x05\x12\x15\n\x11TYPE_JOB_COMPLETE\x10\x06\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'Messages.messages_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _ROLE._serialized_start=848
-  _ROLE._serialized_end=892
-  _STATUS._serialized_start=894
-  _STATUS._serialized_end=986
-  _MSGTYPES._serialized_start=988
-  _MSGTYPES._serialized_end=1084
+  _ROLE._serialized_start=1009
+  _ROLE._serialized_end=1053
+  _STATUS._serialized_start=1055
+  _STATUS._serialized_end=1147
+  _MSGTYPES._serialized_start=1150
+  _MSGTYPES._serialized_end=1285
   _HEARTBEAT._serialized_start=27
   _HEARTBEAT._serialized_end=83
   _REGISTRANTINFO._serialized_start=85
   _REGISTRANTINFO._serialized_end=159
-  _CODEMSG._serialized_start=161
-  _CODEMSG._serialized_end=236
-  _REGISTERREQ._serialized_start=238
-  _REGISTERREQ._serialized_end=303
-  _REGISTERRESP._serialized_start=305
-  _REGISTERRESP._serialized_end=376
-  _JOBRESULT._serialized_start=378
-  _JOBRESULT._serialized_end=420
-  _JOBRESP._serialized_start=422
-  _JOBRESP._serialized_end=485
-  _JOBMSG._serialized_start=487
-  _JOBMSG._serialized_end=509
-  _MAINREQ._serialized_start=512
-  _MAINREQ._serialized_end=690
-  _MAINRESP._serialized_start=693
-  _MAINRESP._serialized_end=846
+  _READY._serialized_start=161
+  _READY._serialized_end=168
+  _CODEMSG._serialized_start=170
+  _CODEMSG._serialized_end=245
+  _REGISTERREQ._serialized_start=247
+  _REGISTERREQ._serialized_end=312
+  _REGISTERRESP._serialized_start=314
+  _REGISTERRESP._serialized_end=385
+  _JOBRESULT._serialized_start=387
+  _JOBRESULT._serialized_end=429
+  _JOBRESP._serialized_start=431
+  _JOBRESP._serialized_end=506
+  _JOBMSG._serialized_start=508
+  _JOBMSG._serialized_end=554
+  _MAINREQ._serialized_start=557
+  _MAINREQ._serialized_end=793
+  _MAINRESP._serialized_start=796
+  _MAINRESP._serialized_end=1007
 # @@protoc_insertion_point(module_scope)

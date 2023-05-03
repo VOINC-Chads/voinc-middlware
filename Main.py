@@ -31,6 +31,8 @@ class Main():
 
         self.quorum = None
 
+        self.ids = []
+
     def set_pending(self, id):
 
         try:
@@ -42,15 +44,17 @@ class Main():
 
         except Exception as e:
             raise e
-    def quorum_met(self, main_resp):
+    def quorum_met(self, resp, id):
 
         try:
             self.logger.info("Main::quorum_met - checking if value has quorum met")
-            resp = messages_pb2.MainResp()
-            resp.ParseFromString(main_resp[1])
-            id = main_resp[0]
+            # resp = messages_pb2.MainResp()
+            # resp.ParseFromString(main_resp[1])
+            # id = main_resp[0]
 
             job_resp = resp.job_resp
+
+            id = bytes.fromhex(id)
 
             self.logger.info(self.pending)
 
@@ -73,7 +77,7 @@ class Main():
                     self.logger.info("Quorum size met")
                     consensus_result = self.find_consensus(value, id)
                     self.pending[id].pop(value)
-                    self.mw_obj.send_job_resp(main_resp[0], value, consensus_result)
+                    self.mw_obj.send_job_resp(id, value, consensus_result)
                     self.logger.info(self.pending)
                     return True
 
@@ -86,6 +90,14 @@ class Main():
         except Exception as e:
             raise e
 
+    def handle_ids(self, id):
+
+        try:
+
+            self.ids.append(id)
+
+        except Exception as e:
+            raise e
 
     def get_heartbeat_info(self):
         try:

@@ -63,6 +63,7 @@ class Worker():
             if resp.status:
                 self.logger.info("Worker::register_response - successful registration")
                 self.state = self.State.PERFORM_JOBS
+                self.mw_obj.send_ready()
 
                 return None
 
@@ -90,7 +91,7 @@ class Worker():
         except Exception as e:
             raise e
 
-    def handle_job(self, job_msg, ids):
+    def handle_job(self, job_msg):
 
         try:
             self.logger.info("Worker::handle_job - got the job below")
@@ -106,8 +107,10 @@ class Worker():
                     result = process_function(job)
                     results[job] = result
 
+                id = job_msg.id
+
                 self.logger.info("Worker::handle_job - finished all parts of job given")
-                self.mw_obj.send_job_response(results, ids)
+                self.mw_obj.send_job_response(results, id)
 
         except Exception as e:
             raise e
